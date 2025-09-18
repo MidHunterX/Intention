@@ -1,7 +1,7 @@
-## Day 1
+# Cross Operating System Context Relay Protocol (XOSCRP)
 
 I'm thinking of creating a communication protocol between the two dual-boot operating systems for making my workspace automation tool.
-Currently Linux (needs ntfs-3g / ntfsprogs) and Windows.
+Currently Linux (needs ntfs3 / ntfs-3g / ntfsprogs) and Windows.
 Every operating system would have a different set of functions (inspired from RPC) and communicates using JSON messages inside files (UNIX Philosophy) which get queued on a shared storage memory (on NTFS inspired from Message Queues).
 No sharing commands to be executed for security purposes. No sophisticated daemons or anything complex just a simple check at startup (KISS principle).
 
