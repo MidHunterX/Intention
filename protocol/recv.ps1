@@ -7,14 +7,14 @@ $taskName = "XOSCRP-Client"
 
 # Uninstall from tasks (.\recv.ps1 uninstall)
 if ($Action -eq "uninstall") {
-	$fullName = "\$taskName"
+    $fullName = "\$taskName"
     schtasks /Query /TN $fullName 2>$null
     if ($LASTEXITCODE -eq 0) {
-		if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
+        if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
         [Security.Principal.WindowsBuiltinRole] "Administrator")) {
-			Write-Warning "Run powershell as administrator to uninstall '$fullName'"
-			exit
-		}
+            Write-Warning "Run powershell as administrator to uninstall '$fullName'"
+            exit
+        }
 
         schtasks /Delete /TN $fullName /F | Out-Null
         Write-Host "Uninstalled $fullName"
@@ -29,7 +29,7 @@ if ($Action -eq "uninstall") {
 $taskExists = schtasks /Query /TN $taskName 2>$null
 if ($LASTEXITCODE -ne 0) {
     if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
-        [Security.Principal.WindowsBuiltinRole] "Administrator")) {
+    [Security.Principal.WindowsBuiltinRole] "Administrator")) {
         Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs
         exit
     }
@@ -40,10 +40,10 @@ if ($LASTEXITCODE -ne 0) {
     $fullName   = "\$taskName"
 
 
-  # Minimized Version
-  # schtasks /Create /TN $fullName /TR "powershell.exe /NoProfile -WindowStyle Minimized -ExecutionPolicy Bypass -File `"$scriptPath`"" /SC ONLOGON /RL HIGHEST /F
+    # Minimized Version
+    # schtasks /Create /TN $fullName /TR "powershell.exe /NoProfile -WindowStyle Minimized -ExecutionPolicy Bypass -File `"$scriptPath`"" /SC ONLOGON /RL HIGHEST /F
 
-  # Normal Popup Version
+    # Normal Popup Version
     schtasks /Create /TN $fullName /TR "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$scriptPath`"" /SC ONLOGON /RL HIGHEST /F
 }
 
@@ -60,7 +60,7 @@ if (!(Test-Path $ProcDir))   { New-Item -ItemType Directory -Path $ProcDir  | Ou
 
 # User reassurance
 function Show-Banner {
-@"
+    @"
     ▀▄▀ █▀█ █▀ █▀▀ █▀█ █▀█
     █░█ █▄█ ▄█ █▄▄ █▀▄ █▀▀
     XOSCRP Client (User-space Automation)
@@ -72,35 +72,35 @@ if ($Host.Name -ne 'ConsoleHost') { } else { Show-Banner }
 # Process all procedure files
 $executed = $false
 Get-ChildItem -Path $CommsDir -File |
-    ForEach-Object {
-        $procName = $_.BaseName
-        $trigger  = $_.FullName
-        $scriptPs1 = Join-Path $ProcDir "$procName.ps1"
-        $scriptBat = Join-Path $ProcDir "$procName.bat"
+ForEach-Object {
+    $procName = $_.BaseName
+    $trigger  = $_.FullName
+    $scriptPs1 = Join-Path $ProcDir "$procName.ps1"
+    $scriptBat = Join-Path $ProcDir "$procName.bat"
 
-        if (Test-Path $scriptPs1) {
-            try {
-                & $scriptPs1
-				$executed = $true
-            } catch {
-                Write-Error "Error executing $scriptPs1 : $_"
-            }
-            Remove-Item $trigger -Force
+    if (Test-Path $scriptPs1) {
+        try {
+            & $scriptPs1
+            $executed = $true
+        } catch {
+            Write-Error "Error executing $scriptPs1 : $_"
         }
-        elseif (Test-Path $scriptBat) {
-            try {
-                & $scriptBat
-				$executed = $true
-            } catch {
-                Write-Error "Error executing $scriptBat : $_"
-            }
-            Remove-Item $trigger -Force
-        }
-        else {
-            Write-Warning "No matching script for procedure '$procName'"
-			Remove-Item $trigger -Force
-        }
+        Remove-Item $trigger -Force
     }
+    elseif (Test-Path $scriptBat) {
+        try {
+            & $scriptBat
+            $executed = $true
+        } catch {
+            Write-Error "Error executing $scriptBat : $_"
+        }
+        Remove-Item $trigger -Force
+    }
+    else {
+        Write-Warning "No matching script for procedure '$procName'"
+        Remove-Item $trigger -Force
+    }
+}
 
 if (-not $executed) {
     $defaultScript = Join-Path $ProcDir "default.ps1"
