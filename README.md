@@ -1,4 +1,4 @@
-# Cross Operating System Context Relay Protocol (XOSCRP)
+# Context Relay Protocol
 
 ## Dependencies (Linux)
 
@@ -19,4 +19,3 @@ If Linux writes to the partition in this condition, it can cause **serious data 
   powercfg /h off
   ```
 * Always perform a **full shutdown** before switching to Linux.
-* If the partition is detected as dirty, do not process the queue until Windows has fully shut down.

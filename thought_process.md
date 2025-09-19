@@ -42,3 +42,19 @@ Basically every OS can be seen as a "server" with different pre-defined function
   - Get all files in queue; FIFO based on file_created
   - Execute ones with correct "os"
 - ACK: Delete the JSON file
+
+## Building an MVP
+
+- Linux (send): Sends a plain file with the name of function as its filename.
+- Windows (recv): Get all files in a queue, execute the ones with the correct name and acknowledges by deleting all encountered files.
+Bunch of scripts are stored in procedures directory for execution
+
+```
+.xoscrp
+├──  protocol
+│   ├──  procedures
+│   │   ├──  default.ps1
+│   │   └──  gaming_mode.ps1
+│   └──  recv.ps1
+└── {function_files}
+```
