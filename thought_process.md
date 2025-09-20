@@ -47,6 +47,7 @@ Basically every OS can be seen as a "server" with different pre-defined function
 
 - Linux (send): Sends a plain file with the name of function as its filename.
 - Windows (recv): Get all files in a queue, execute the ones with the correct name and acknowledges by deleting all encountered files.
+
 Bunch of scripts are stored in procedures directory for execution
 
 ```
@@ -58,3 +59,41 @@ Bunch of scripts are stored in procedures directory for execution
 │   └──  recv.ps1
 └── {function_files}
 ```
+
+## Building the Final Product
+
+Currently Linux -> Windows unidirectional communication is supported.
+
+### UserFlow
+
+#### Bootstrapping
+
+- GUI to select shared drive/directory
+- Save location to Linux cache (Windows registry for bidirectional support)
+
+#### Intent Definition
+
+- Set up intents in JSON on each OS
+- Ability to extend intents with post-exec hook for adding shell scripts
+
+#### Execution
+
+State your intention for later time with:
+
+```bash
+intention add "function_name"
+```
+
+Remove it with:
+
+```bash
+intention remove "function_name"
+```
+
+Change to the context immediately with:
+
+```bash
+intention reboot "function_name"
+```
+
+This will immediately reboot to your intended state using `grub-reboot`. Sit back and relax while everything is being taken care of.

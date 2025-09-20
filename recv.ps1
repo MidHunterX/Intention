@@ -44,7 +44,7 @@ if ($LASTEXITCODE -ne 0) {
     # schtasks /Create /TN $fullName /TR "powershell.exe /NoProfile -WindowStyle Minimized -ExecutionPolicy Bypass -File `"$scriptPath`"" /SC ONLOGON /RL HIGHEST /F
 
     # Normal Popup Version
-    schtasks /Create /TN $fullName /TR "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$scriptPath`"" /SC ONLOGON /RL HIGHEST /F
+    schtasks /Create /TN $fullName /TR "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$scriptPath`"" /SC ONLOGON /F
 }
 
 # ============================ [ CORE-LOGIC ] ============================ #
