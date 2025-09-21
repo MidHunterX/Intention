@@ -60,18 +60,58 @@ windows_proc_dir="${windows_mountpoint}/${proc_dir}"
   exit 1
 }
 
+# =============================== [ ACTION ] =============================== #
+
+is_procedure_available() {
+  [[ -f "${windows_proc_dir}/${PROCEDURE}.ps1" ]] && return 0
+  return 1
+}
+
+is_procedure_called() {
+  [[ -f "${windows_comm_dir}/${PROCEDURE}" ]] && return 0
+  return 1
+}
+
 # ACTION: Run remote procedure
 if [[ "$COMMAND" == "set" ]]; then
-  touch "${windows_comm_dir}/${PROCEDURE}"
+  if is_procedure_available; then
+    touch "${windows_comm_dir}/${PROCEDURE}"
+  else
+    echo "Procedure $PROCEDURE is not available"
+  fi
 
 # ACTION: Delete remote procedure
 elif [[ "$COMMAND" == "unset" ]]; then
-  rm "${windows_comm_dir}/${PROCEDURE}"
+  if is_procedure_called; then
+    rm "${windows_comm_dir}/${PROCEDURE}"
+  else
+    echo "Procedure $PROCEDURE is not set on Windows"
+  fi
 
 # ACTION: List remote procedures
 elif [[ "$COMMAND" == "list" ]]; then
-  echo "Available Intents (Windows):"
+  echo "Available Procedures (Windows):"
   get_available_procedures
+
+# ACTION: Status of remote procedure
+elif [[ "$COMMAND" == "status" ]]; then
+  if is_procedure_called; then
+    echo "Procedure $PROCEDURE is set on Windows"
+  else
+    echo "Procedure $PROCEDURE is not set on Windows"
+  fi
+
+# ACTION (CRITICAL): Reboot to Windows
+elif [[ "$COMMAND" == "reboot" ]]; then
+  if is_procedure_available; then
+    touch "${windows_comm_dir}/${PROCEDURE}"
+    # eg $windows_title = 'Windows Boot Manager (on /dev/nvme0n1p1)'
+    windows_title=$(sudo grep -i windows /boot/grub/grub.cfg | cut -d "'" -f 2)
+    sudo grub-reboot "$windows_title"
+    sudo reboot
+  else
+    echo "Procedure $PROCEDURE is not available"
+  fi
 
 # ACTION: Invalid command
 else
