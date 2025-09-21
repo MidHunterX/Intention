@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-PROCEDURE=$1
+COMMAND=$1
+PROCEDURE=$2
 
 PROTOCOL="xoscrp"
 cache_file="$HOME/.cache/${PROTOCOL}"
@@ -17,7 +18,7 @@ set_shared_location() {
     echo "Invalid mountpoint: $partition"
     exit 1
   fi
-  echo $partition > $cache_file
+  echo $partition >$cache_file
 }
 
 # ENSURE: save windows mountpoint in cache
@@ -45,13 +46,35 @@ get_available_procedures() {
 # CASE: without remote procedure
 windows_proc_dir="${windows_mountpoint}/${proc_dir}"
 [[ -z "$PROCEDURE" ]] && {
-  echo "Available Intents (Windows):"
+  echo "No procedure specified"
+  echo "Available Procedures (Windows):"
   get_available_procedures
+  echo "Usage: intention <command> <procedure>"
+  echo "Example: intention [set|unset] gaming_mode"
   exit 0
 }
 
 # SANITIZE: remote procedure name
-[[ ! "$PROCEDURE" =~ ^[A-Za-z0-9_-]+$ ]] && { echo "Invalid procedure"; exit 1; }
+[[ ! "$PROCEDURE" =~ ^[A-Za-z0-9_-]+$ ]] && {
+  echo "Invalid procedure"
+  exit 1
+}
 
 # ACTION: Run remote procedure
-touch "${windows_comm_dir}/${PROCEDURE}"
+if [[ "$COMMAND" == "set" ]]; then
+  touch "${windows_comm_dir}/${PROCEDURE}"
+
+# ACTION: Delete remote procedure
+elif [[ "$COMMAND" == "unset" ]]; then
+  rm "${windows_comm_dir}/${PROCEDURE}"
+
+# ACTION: List remote procedures
+elif [[ "$COMMAND" == "list" ]]; then
+  echo "Available Intents (Windows):"
+  get_available_procedures
+
+# ACTION: Invalid command
+else
+  echo "Invalid command: $COMMAND"
+  exit 1
+fi
