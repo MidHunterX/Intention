@@ -50,8 +50,7 @@ if ($LASTEXITCODE -ne 0) {
 # ============================ [ CORE-LOGIC ] ============================ #
 
 $Protocol = "xoscrp"
-# $CommsDir = Join-Path $env:SystemDrive ".${Protocol}"
-$CommsDir = "X:\.${Protocol}"
+$CommsDir = Join-Path $PSScriptRoot "message_queue"
 $ProcDir  = Join-Path $PSScriptRoot "procedures"
 
 # Ensure comms + procedure dirs

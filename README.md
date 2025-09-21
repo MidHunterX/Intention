@@ -4,7 +4,9 @@ Inter-Operating System Workflow Automation based on relaying user intent in a mu
 
 ## XOSCRP: Cross-OS Context Relay Protocol
 
-It uses a bespoke Cross Operating System Context Relay Protocol for communicating user intent for workspace context changes between different operating systems in a multi-boot setup.
+It uses a bespoke Cross Operating System Context Relay Protocol for
+communicating user intent for workspace context changes between different
+operating systems in a multi-boot setup.
 
 ### Prerequisites
 
