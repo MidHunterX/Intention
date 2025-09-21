@@ -5,32 +5,31 @@ PROCEDURE=$1
 PROTOCOL="xoscrp"
 cache_file="$HOME/.cache/${PROTOCOL}"
 comms_dir=".${PROTOCOL}/message_queue/"
+proc_dir=".${PROTOCOL}/procedures/"
 
 # ================================ [ INIT ] ================================ #
 
 set_shared_location() {
   read -r -p 'Enter path to your shared path/mount point: ' partition
-  # SANITIZE: mount point name
+  # sanitize mount point name, ensure existence and write to cache
   [[ $partition != /* ]] && partition="/$partition"
-  # CHECK: mount point exists
   if [ ! -d $partition ]; then
     echo "Invalid mountpoint: $partition"
     exit 1
   fi
-  # ACTION: Write to cache
   echo $partition > $cache_file
-}
-
-get_shared_location() {
-  [ ! -f $cache_file ] && set_shared_location
-  windows_mountpoint=$(cat $cache_file)
-  echo $windows_mountpoint
 }
 
 # ENSURE: save windows mountpoint in cache
 if [ ! -f $cache_file ]; then
   set_shared_location
 fi
+
+get_shared_location() {
+  [ ! -f $cache_file ] && set_shared_location
+  windows_mountpoint=$(cat $cache_file)
+  echo $windows_mountpoint
+}
 
 # ENSURE: windows_comm_dir exists
 windows_mountpoint=$(get_shared_location)
@@ -39,8 +38,17 @@ windows_comm_dir="${windows_mountpoint}/${comms_dir}"
 
 # =========================== [ COMMUNICATIONS ] =========================== #
 
-# CHECK: remote procedure
-[[ -z "$PROCEDURE" ]] && { echo "No procedure specified"; exit 1; }
+get_available_procedures() {
+  echo "$(ls $windows_proc_dir | cut -d '.' -f 1)"
+}
+
+# CASE: without remote procedure
+windows_proc_dir="${windows_mountpoint}/${proc_dir}"
+[[ -z "$PROCEDURE" ]] && {
+  echo "Available Intents (Windows):"
+  get_available_procedures
+  exit 0
+}
 
 # SANITIZE: remote procedure name
 [[ ! "$PROCEDURE" =~ ^[A-Za-z0-9_-]+$ ]] && { echo "Invalid procedure"; exit 1; }

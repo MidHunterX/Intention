@@ -81,13 +81,13 @@ Currently Linux -> Windows unidirectional communication is supported.
 State your intention for later time with:
 
 ```bash
-intention add "function_name"
+intention set "function_name"
 ```
 
 Remove it with:
 
 ```bash
-intention remove "function_name"
+intention unset "function_name"
 ```
 
 Change to the context immediately with:
