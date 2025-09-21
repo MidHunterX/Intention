@@ -39,12 +39,8 @@ if ($LASTEXITCODE -ne 0) {
     $scriptPath = $MyInvocation.MyCommand.Path
     $fullName   = "\$taskName"
 
-
-    # Minimized Version
-    # schtasks /Create /TN $fullName /TR "powershell.exe /NoProfile -WindowStyle Minimized -ExecutionPolicy Bypass -File `"$scriptPath`"" /SC ONLOGON /RL HIGHEST /F
-
-    # Normal Popup Version
-    schtasks /Create /TN $fullName /TR "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$scriptPath`"" /SC ONLOGON /F
+    # Create task
+    schtasks /Create /TN $fullName /TR "powershell.exe -NoProfile -WindowStyle Minimized -ExecutionPolicy Bypass -File `"$scriptPath`"" /SC ONLOGON /F
 }
 
 # ============================ [ CORE-LOGIC ] ============================ #
@@ -56,17 +52,6 @@ $ProcDir  = Join-Path $PSScriptRoot "procedures"
 # Ensure comms + procedure dirs
 if (!(Test-Path $CommsDir))  { New-Item -ItemType Directory -Path $CommsDir | Out-Null }
 if (!(Test-Path $ProcDir))   { New-Item -ItemType Directory -Path $ProcDir  | Out-Null }
-
-# User reassurance
-function Show-Banner {
-    @"
-    ▀▄▀ █▀█ █▀ █▀▀ █▀█ █▀█
-    █░█ █▄█ ▄█ █▄▄ █▀▄ █▀▀
-    XOSCRP Client (User-space Automation)
-"@ | Write-Host -ForegroundColor Cyan
-}
-# Only show banner if running in an interactive console
-if ($Host.Name -ne 'ConsoleHost') { } else { Show-Banner }
 
 # Process all procedure files
 $executed = $false
