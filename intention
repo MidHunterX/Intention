@@ -82,6 +82,9 @@ if [[ "$ACTION" == "list" ]]; then
 elif [[ "$ACTION" == "reboot" ]]; then
   # case: reboot without PROCEDURE
   if [[ -z "$PROCEDURE" ]]; then
+    # eg $windows_title = 'Windows Boot Manager (on /dev/nvme0n1p1)'
+    windows_title=$(sudo grep -i windows /boot/grub/grub.cfg | cut -d "'" -f 2)
+    sudo grub-reboot "$windows_title"
     reboot
     exit 0
   fi
