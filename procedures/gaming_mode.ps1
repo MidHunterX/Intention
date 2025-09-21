@@ -1,8 +1,8 @@
 # Gaming mode procedure
-# Sets a gaming wallpaper and launches a game
+# Sets a gaming wallpaper and launches Playnite
 
-$gameExe   = "X:\Mid_Hunter\Playnite\Playnite.DesktopApp.exe"
-$wallpaper = "X:\Customization\Wallpaper\games.dll\FarCry 5.jpg"
+$executable = "X:\Mid_Hunter\Playnite\Playnite.DesktopApp.exe"
+$wallpaper  = "X:\Customization\Wallpaper\games.dll\The_Witcher_3.jpg"
 
 # Set wallpaper
 Add-Type @"
@@ -17,7 +17,7 @@ $SPIF_UPDATEINIFILE   = 0x01
 $SPIF_SENDWININICHANGE= 0x02
 [Wallpaper]::SystemParametersInfo($SPI_SETDESKWALLPAPER, 0, $wallpaper, $SPIF_UPDATEINIFILE -bor $SPIF_SENDWININICHANGE)
 
-# Launch the game
-if (Test-Path $gameExe) {
-    Start-Process -FilePath $gameExe
+# Start executable if exists
+if (Test-Path $executable) {
+    Start-Process -FilePath $executable
 }
