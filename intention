@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-COMMAND=$1
+ACTION=$1
 PROCEDURE=$2
 
 PROTOCOL="xoscrp"
@@ -32,33 +32,12 @@ get_shared_location() {
   echo $windows_mountpoint
 }
 
-# ENSURE: windows_comm_dir exists
+# ENSURE: windows communication and procedure directories
 windows_mountpoint=$(get_shared_location)
 windows_comm_dir="${windows_mountpoint}/${comms_dir}"
 [ ! -d "${windows_comm_dir}" ] && mkdir -p "${windows_comm_dir}"
-
-# =========================== [ COMMUNICATIONS ] =========================== #
-
-get_available_procedures() {
-  echo "$(ls $windows_proc_dir | cut -d '.' -f 1)"
-}
-
-# CASE: without remote procedure
 windows_proc_dir="${windows_mountpoint}/${proc_dir}"
-[[ -z "$PROCEDURE" ]] && {
-  echo "No procedure specified"
-  echo "Available Procedures (Windows):"
-  get_available_procedures
-  echo "Usage: intention <command> <procedure>"
-  echo "Example: intention [set|unset] gaming_mode"
-  exit 0
-}
-
-# SANITIZE: remote procedure name
-[[ ! "$PROCEDURE" =~ ^[A-Za-z0-9_-]+$ ]] && {
-  echo "Invalid procedure"
-  exit 1
-}
+[ ! -d "${windows_proc_dir}" ] && mkdir -p "${windows_proc_dir}"
 
 # =============================== [ ACTION ] =============================== #
 
@@ -72,49 +51,99 @@ is_procedure_called() {
   return 1
 }
 
-# ACTION: Run remote procedure
-if [[ "$COMMAND" == "set" ]]; then
-  if is_procedure_available; then
-    touch "${windows_comm_dir}/${PROCEDURE}"
-  else
-    echo "Procedure $PROCEDURE is not available"
-  fi
+get_available_procedures() {
+  echo "$(ls ${windows_proc_dir} | cut -d '.' -f 1)"
+}
 
-# ACTION: Delete remote procedure
-elif [[ "$COMMAND" == "unset" ]]; then
-  if is_procedure_called; then
-    rm "${windows_comm_dir}/${PROCEDURE}"
-  else
-    echo "Procedure $PROCEDURE is not set on Windows"
-  fi
+help_message() {
+  echo "Available Procedures (Windows)"
+  echo "=============================="
+  get_available_procedures
+  echo "=============================="
+  echo "Usage: intention [set|unset|status|reboot] <procedure>"
+  exit 0
+}
+
+# ============================= [ ACTION (2) ] ============================= #
+
+# REQUIRED: ACTION
+if [[ -z "$ACTION" ]] || [[ "$ACTION" == "help" ]]; then
+  help_message
+  exit 0
+fi
 
 # ACTION: List remote procedures
-elif [[ "$COMMAND" == "list" ]]; then
+if [[ "$ACTION" == "list" ]]; then
   echo "Available Procedures (Windows):"
   get_available_procedures
-
-# ACTION: Status of remote procedure
-elif [[ "$COMMAND" == "status" ]]; then
-  if is_procedure_called; then
-    echo "Procedure $PROCEDURE is set on Windows"
-  else
-    echo "Procedure $PROCEDURE is not set on Windows"
-  fi
+  exit 0
 
 # ACTION (CRITICAL): Reboot to Windows
-elif [[ "$COMMAND" == "reboot" ]]; then
+elif [[ "$ACTION" == "reboot" ]]; then
+  # case: reboot without PROCEDURE
+  if [[ -z "$PROCEDURE" ]]; then
+    reboot
+    exit 0
+  fi
+
+  # case: reboot with PROCEDURE
   if is_procedure_available; then
     touch "${windows_comm_dir}/${PROCEDURE}"
     # eg $windows_title = 'Windows Boot Manager (on /dev/nvme0n1p1)'
     windows_title=$(sudo grep -i windows /boot/grub/grub.cfg | cut -d "'" -f 2)
     sudo grub-reboot "$windows_title"
-    sudo reboot
+    reboot
+    exit 0
   else
     echo "Procedure $PROCEDURE is not available"
+    exit 1
+  fi
+fi
+
+# ============================= [ ACTION (3) ] ============================= #
+
+# REQUIRED: PROCEDURE
+if [[ -z "$PROCEDURE" ]]; then
+  help_message
+  exit 1
+fi
+
+# SANITIZE: remote procedure name
+if [[ ! "$PROCEDURE" =~ ^[A-Za-z0-9_-]+$ ]]; then
+  echo "Invalid procedure name: $PROCEDURE"
+  echo "Valid characters: A-Z, a-z, 0-9, _, -"
+  exit 1
+fi
+
+# ACTION: Create remote procedure
+if [[ "$ACTION" == "set" ]]; then
+  if is_procedure_available; then
+    touch "${windows_comm_dir}/${PROCEDURE}"
+  else
+    echo "Procedure $PROCEDURE is not available"
+    exit 1
+  fi
+
+# ACTION: Delete remote procedure
+elif [[ "$ACTION" == "unset" ]]; then
+  if is_procedure_called; then
+    rm "${windows_comm_dir}/${PROCEDURE}"
+  else
+    echo "Procedure $PROCEDURE is not set on Windows"
+    exit 1
+  fi
+
+# ACTION: Status of remote procedure
+elif [[ "$ACTION" == "status" ]]; then
+  if is_procedure_called; then
+    echo "Procedure $PROCEDURE is set on Windows"
+  else
+    echo "Procedure $PROCEDURE is not set on Windows"
+    exit 1
   fi
 
 # ACTION: Invalid command
 else
-  echo "Invalid command: $COMMAND"
+  echo "Invalid command: $ACTION"
   exit 1
 fi
