@@ -6,6 +6,13 @@ Imagine doing Development works in Linux and you want to switch to Windows for e
 
 With this new setup, you just state your intent, sit back and relax thinking about the next task you want to do. Meanwhile this automation will do all the workspace setup for you.
 
+### Prerequisites
+
+- A dual-boot system with Linux and Windows.
+- GRUB Boot Manager configured to boot to Linux.
+- A shared NTFS partition accessible from both operating systems.
+- NTFS support on Linux (`ntfs-3g` package is common).
+
 ## Usage
 
 ```bash
@@ -22,32 +29,29 @@ intention unset "function_name"
 intention reboot "function_name"
 ```
 
-## XOSCRP: Cross-OS Context Relay Protocol
+## Working
 
-It uses a bespoke Cross Operating System Context Relay Protocol for communicating user intent for workspace context changes between different operating systems in a multi-boot setup.
+It uses a bespoke Cross Operating System Context Relay Protocol (XOSCRP) for communicating user intent for workspace context changes between different operating systems in a multi-boot setup.
 
-- Sees each Operating System as a "server" with multiple capabilities.
-- Uses FileSystem for communication and directory as message queue.
+- Each Operating System is seen as a server with multiple capabilities.
+- These capabilities can be called by other Operating Systems in an RPC like manner.
+- Uses shared File System (NTFS) for fully offline deferred communication of this intent call.
+- A directory in this File System is used as a simple message queue.
+- After the intent request is made, when the requested OS boots up, it will acknowledge the intent message and act accordingly.
 
-### Prerequisites
-
-- A dual-boot system with Linux and Windows.
-- GRUB Boot Manager configured to boot to Linux.
-- A shared NTFS partition accessible from both operating systems.
-- NTFS support on Linux (`ntfs-3g` package is common).
-
-### ⚠️ Important Warning: Windows Hibernation / Fast Startup
-
-When Windows uses **hibernation** or **Fast Startup**, the NTFS partition is left in an **unsafe state**.
-If Linux writes to the partition in this condition, it can cause **serious data corruption**.
-
-**Mitigation:**
-
-- Disable Fast Startup in Windows (`Control Panel → Power Options`).
-- Disable hibernation completely:
-
-  ```powershell
-  powercfg /h off
-  ```
-
-- Always perform a **full shutdown** before switching to Linux.
+> [!WARNING]
+>
+> ### High Risk of Data Corruption
+>
+> When Windows uses **hibernation** or **Fast Startup**, the NTFS partition is left in an **unsafe state**.
+> If Linux writes to the partition in this condition, it can cause **serious data corruption**.
+> It's due to the way poorly implemented New Technology File System (NTFS) in Windows works.
+>
+> Mitigation:
+>
+> - Disable Fast Startup in Windows (`Control Panel → Power Options`).
+> - Disable hibernation completely:
+>   ```powershell
+>   powercfg /h off
+>   ```
+> - Always perform a **full shutdown** before switching to Linux.
