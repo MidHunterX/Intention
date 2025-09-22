@@ -17,6 +17,8 @@ With this new setup, you just state your intent, sit back and relax thinking abo
 
 ## 🫴 Usage
 
+### Linux (Procedure Call)
+
 ```bash
 # Lists all available procedures exposed by other Operating Systems
 intention list
@@ -29,6 +31,21 @@ intention unset "function_name"
 
 # Reboot to the appropriate OS and set up the workspace for your intention
 intention reboot "function_name"
+```
+
+### Windows (Procedure Server)
+
+Run the `recv.ps1` once to install the server as a Windows task entry.
+
+```
+.xoscrp
+├── message_queue
+├── procedures
+│   ├── default.ps1
+│   ├── gaming_mode.ps1
+│   ├── ...
+│   └── {function_files}
+└──  recv.ps1
 ```
 
 ## 🧰 How It Works
