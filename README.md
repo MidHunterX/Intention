@@ -15,7 +15,7 @@ With this new setup, you just state your intent, sit back and relax thinking abo
 - A shared NTFS partition accessible from both operating systems.
 - NTFS support on Linux (`ntfs-3g` package is common).
 
-## Usage
+## 🫴 Usage
 
 ```bash
 # Lists all available procedures exposed by other Operating Systems
@@ -31,7 +31,7 @@ intention unset "function_name"
 intention reboot "function_name"
 ```
 
-## Working
+## 🧰 How It Works
 
 It uses a bespoke Cross Operating System Context Relay Protocol (XOSCRP) for communicating user intent for workspace context changes between different operating systems in a multi-boot setup.
 

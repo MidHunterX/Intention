@@ -2,7 +2,7 @@
 # Opens Rainmeter and sets wallpaper
 
 $executable = "X:\Mid_Hunter\Rainmeter 4.3\Rainmeter.exe"
-$wallpaper  = "X:\Customization\Wallpaper\hud modded by mid hunter v2.jpg"
+$wallpaper    = "X:\Customization\Wallpaper\hud modded 1080.jpg"
 
 # Set wallpaper
 Add-Type @"
