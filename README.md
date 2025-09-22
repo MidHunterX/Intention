@@ -8,6 +8,13 @@ Imagine doing Development works in Linux and you want to switch to Windows for e
 
 With this new setup, you just state your intent, sit back and relax thinking about the next task you want to do. Meanwhile this automation will do all the workspace setup for you.
 
+### What it does
+
+- Gets available procedures exposed by other Operating System.
+- Communicates your intent to the other Operating System.
+- Reboot and automatically select the OS entry on the GRUB Boot Manager.
+- Automatically sets up wallpaper, opens apps, change settings, etc. for you.
+
 ### Prerequisites
 
 - A dual-boot system with Linux and Windows.
