@@ -1,3 +1,5 @@
+![Intention Banner Image](./.assets/intention_banner.jpg)
+
 # Intention
 
 Inter Operating System Workflow Automation by relaying user intent in a multi-boot setup.
