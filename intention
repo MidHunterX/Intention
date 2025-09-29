@@ -60,7 +60,7 @@ help_message() {
   echo "=============================="
   get_available_procedures
   echo "=============================="
-  echo "Usage: intention [set|unset|status|reboot] <procedure>"
+  echo "Usage: intention [set|unset|status|run] <procedure>"
   exit 0
 }
 
@@ -74,12 +74,11 @@ fi
 
 # ACTION: List remote procedures
 if [[ "$ACTION" == "list" ]]; then
-  echo "Available Procedures (Windows):"
   get_available_procedures
   exit 0
 
 # ACTION (CRITICAL): Reboot to Windows
-elif [[ "$ACTION" == "reboot" ]]; then
+elif [[ "$ACTION" == "run" ]]; then
   # case: reboot without PROCEDURE
   if [[ -z "$PROCEDURE" ]]; then
     # eg $windows_title = 'Windows Boot Manager (on /dev/nvme0n1p1)'

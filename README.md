@@ -36,8 +36,8 @@ intention set "function_name"
 # Unset your intention
 intention unset "function_name"
 
-# Reboot to the appropriate OS and set up the workspace for your intention
-intention reboot "function_name"
+# Immediately move to the appropriate OS and set up workspace and settings
+intention run "function_name"
 ```
 
 ### Windows (Procedure Server)
