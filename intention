@@ -117,35 +117,42 @@ if [[ ! "$PROCEDURE" =~ ^[A-Za-z0-9_-]+$ ]]; then
   exit 1
 fi
 
-# ACTION: Create remote procedure
-if [[ "$ACTION" == "set" ]]; then
+case "$ACTION" in
+"set")
   if is_procedure_available; then
     touch "${windows_comm_dir}/${PROCEDURE}"
+    echo "Procedure '$PROCEDURE' scheduled for next Windows boot"
   else
-    echo "Procedure $PROCEDURE is not available"
+    echo "Error: Procedure '$PROCEDURE' is not available"
+    echo "Available procedures:"
+    get_available_procedures | sed 's/^/  - /'
     exit 1
   fi
+  ;;
 
-# ACTION: Delete remote procedure
-elif [[ "$ACTION" == "unset" ]]; then
+"unset")
   if is_procedure_called; then
     rm "${windows_comm_dir}/${PROCEDURE}"
+    echo "Procedure '$PROCEDURE' removed from schedule"
   else
-    echo "Procedure $PROCEDURE is not set on Windows"
+    echo "Error: Procedure '$PROCEDURE' is not scheduled"
     exit 1
   fi
+  ;;
 
-# ACTION: Status of remote procedure
-elif [[ "$ACTION" == "status" ]]; then
+"status")
   if is_procedure_called; then
-    echo "Procedure $PROCEDURE is set on Windows"
+    echo "Procedure '$PROCEDURE' is scheduled to run on next Windows boot"
   else
-    echo "Procedure $PROCEDURE is not set on Windows"
+    echo "Procedure '$PROCEDURE' is NOT scheduled to run"
     exit 1
   fi
+  ;;
 
-# ACTION: Invalid command
-else
-  echo "Invalid command: $ACTION"
+*)
+  echo "Error: Invalid command: $ACTION"
+  echo ""
+  show_help
   exit 1
-fi
+  ;;
+esac
