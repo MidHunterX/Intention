@@ -30,14 +30,12 @@ With this new setup, you just state your intent, sit back and relax thinking abo
 # Lists all available procedures exposed by other Operating Systems
 intention list
 
-# Set your intention for using another OS in near future
-intention set "function_name"
-
-# Unset your intention
-intention unset "function_name"
-
-# Immediately move to the appropriate OS and set up workspace and settings
+# Immediately move to the appropriate OS and set up workspace
 intention run "function_name"
+
+# Set or unset your intention for later use
+intention set "function_name"
+intention unset "function_name"
 ```
 
 ### Windows (Procedure Server)
@@ -57,7 +55,7 @@ Run the `recv.ps1` once to install the server as a Windows task entry.
 
 ## 🧰 How It Works
 
-It uses a bespoke Cross Operating System Context Relay Protocol (XOSCRP) for communicating user intent for workspace context changes between different operating systems in a multi-boot setup.
+It uses a bespoke Cross Operating System Context Relay Protocol (XOSCRP); a deferred RPC system over a filesystem for communicating user intent for workspace context changes between different operating systems in a multi-boot setup.
 
 - Each Operating System is seen as a server with multiple capabilities.
 - These capabilities can be called by other Operating Systems in an RPC like manner.
