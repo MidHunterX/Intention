@@ -8,6 +8,27 @@ cache_file="$HOME/.cache/${PROTOCOL}"
 comms_dir=".${PROTOCOL}/message_queue/"
 proc_dir=".${PROTOCOL}/procedures/"
 
+show_init_help() {
+  cat <<EOF
+Initialization Help
+
+The script needs access to a shared directory that both Linux and Windows can access.
+This is typically a mounted Windows partition or network share.
+
+Example locations:
+    /mnt/windows/          # Mounted Windows partition
+    /media/user/shared/    # Shared network drive
+    /home/user/shared/     # Shared directory (if using tools like Shared Folders in VM)
+
+The directory will contain:
+    ${comms_dir}    # Communication queue (marker files)
+    ${proc_dir}     # Procedure scripts (.ps1 files)
+
+After initialization, place your PowerShell scripts in the procedures directory
+on the Windows side, and they will be detectable by this script.
+EOF
+}
+
 # ================================ [ INIT ] ================================ #
 
 set_shared_location() {
@@ -23,6 +44,7 @@ set_shared_location() {
 
 # ENSURE: save windows mountpoint in cache
 if [ ! -f $cache_file ]; then
+  show_init_help
   set_shared_location
 fi
 
@@ -55,32 +77,73 @@ get_available_procedures() {
   echo "$(ls ${windows_proc_dir} | cut -d '.' -f 1)"
 }
 
-help_message() {
-  echo "Available Procedures (Windows)"
-  echo "=============================="
-  get_available_procedures
-  echo "=============================="
-  echo "Usage: intention [set|unset|status|run] <procedure>"
-  exit 0
+show_help() {
+  cat <<EOF
+Cross-OS Procedure Manager
+
+Manages procedures that run automatically when booting into Windows.
+Uses shared directory: $windows_mountpoint
+
+USAGE:
+    $0 [COMMAND] [PROCEDURE]
+
+COMMANDS:
+    list                    List all available procedures
+    run [PROCEDURE]         Reboot to Windows and run specified procedure
+    run                     Reboot to Windows without running any procedure
+    set <PROCEDURE>         Mark procedure to run on next Windows boot
+    unset <PROCEDURE>       Remove mark from procedure
+    status <PROCEDURE>      Check if procedure is marked to run
+    help                    Show this help message
+    init                    Reconfigure shared location
+
+PROCEDURES:
+    Procedures are PowerShell scripts located in:
+    ${windows_proc_dir}
+    List available procedures with 'list' command
+
+EXAMPLES:
+    $0 list                 # Show available procedures
+    $0 run gaming_mode      # Reboot and run gaming_mode setup
+    $0 set gaming_mode      # Mark gaming_mode setup for next boot
+    $0 status gaming_mode   # Check if gaming_mode setup is scheduled
+    $0 unset gaming_mode    # Cancel gaming_mode setup
+    $0 init                 # Change shared location
+EOF
 }
 
 # ============================= [ ACTION (2) ] ============================= #
 
 # REQUIRED: ACTION
-if [[ -z "$ACTION" ]] || [[ "$ACTION" == "help" ]]; then
-  help_message
+if [[ -z "$ACTION" ]]; then
+  show_help
   exit 0
 fi
 
-# ACTION: List remote procedures
-if [[ "$ACTION" == "list" ]]; then
+case "$ACTION" in
+"help" | "-h" | "--help")
+  show_help
+  exit 0
+  ;;
+
+"init")
+  show_init_help
+  echo ""
+  set_shared_location
+  echo "Shared location updated successfully."
+  echo "New location: $(cat $cache_file)"
+  exit 0
+  ;;
+
+"list")
   get_available_procedures
   exit 0
+  ;;
 
-# ACTION (CRITICAL): Reboot to Windows
-elif [[ "$ACTION" == "run" ]]; then
+"run")
   # case: reboot without PROCEDURE
   if [[ -z "$PROCEDURE" ]]; then
+    echo "Rebooting to Windows without running any procedure..."
     # eg $windows_title = 'Windows Boot Manager (on /dev/nvme0n1p1)'
     windows_title=$(sudo grep -i windows /boot/grub/grub.cfg | cut -d "'" -f 2)
     sudo grub-reboot "$windows_title"
@@ -90,6 +153,7 @@ elif [[ "$ACTION" == "run" ]]; then
 
   # case: reboot with PROCEDURE
   if is_procedure_available; then
+    echo "Rebooting to Windows and running procedure: $PROCEDURE"
     touch "${windows_comm_dir}/${PROCEDURE}"
     # eg $windows_title = 'Windows Boot Manager (on /dev/nvme0n1p1)'
     windows_title=$(sudo grep -i windows /boot/grub/grub.cfg | cut -d "'" -f 2)
@@ -97,22 +161,27 @@ elif [[ "$ACTION" == "run" ]]; then
     reboot
     exit 0
   else
-    echo "Procedure $PROCEDURE is not available"
+    echo "Error: Procedure '$PROCEDURE' is not available"
+    echo "Available procedures:"
+    get_available_procedures | sed 's/^/  - /'
     exit 1
   fi
-fi
+  ;;
+esac
 
 # ============================= [ ACTION (3) ] ============================= #
 
 # REQUIRED: PROCEDURE
 if [[ -z "$PROCEDURE" ]]; then
-  help_message
+  echo "Error: Procedure name is required for action '$ACTION'"
+  echo ""
+  show_help
   exit 1
 fi
 
 # SANITIZE: remote procedure name
 if [[ ! "$PROCEDURE" =~ ^[A-Za-z0-9_-]+$ ]]; then
-  echo "Invalid procedure name: $PROCEDURE"
+  echo "Error: Invalid procedure name: $PROCEDURE"
   echo "Valid characters: A-Z, a-z, 0-9, _, -"
   exit 1
 fi
