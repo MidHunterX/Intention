@@ -5,13 +5,9 @@ PROCEDURE=$2
 
 PROTOCOL="xoscrp"
 cache_file="$HOME/.cache/${PROTOCOL}"
-comms_dir=".${PROTOCOL}/message_queue/"
-proc_dir=".${PROTOCOL}/procedures/"
 
 show_init_help() {
   cat <<EOF
-Initialization Help
-
 The script needs access to a shared directory that both Linux and Windows can access.
 This is typically a mounted Windows partition or network share.
 
@@ -50,31 +46,38 @@ fi
 
 get_shared_location() {
   [ ! -f $cache_file ] && set_shared_location
-  windows_mountpoint=$(cat $cache_file)
-  echo $windows_mountpoint
+  local location=$(cat $cache_file)
+  echo $location
 }
 
-# ENSURE: windows communication and procedure directories
-windows_mountpoint=$(get_shared_location)
-windows_comm_dir="${windows_mountpoint}/${comms_dir}"
-[ ! -d "${windows_comm_dir}" ] && mkdir -p "${windows_comm_dir}"
-windows_proc_dir="${windows_mountpoint}/${proc_dir}"
-[ ! -d "${windows_proc_dir}" ] && mkdir -p "${windows_proc_dir}"
+# REQUIRED: Shared Mountpoint
+shared_location=$(get_shared_location)
+if [ ! -d $shared_location ]; then
+  echo "Location does not exist: $shared_location"
+  exit 1
+fi
+
+# ENSURE: shared communication and procedure directories
+message_queue="${shared_location}/.${PROTOCOL}/message_queue/"
+[ ! -d "${message_queue}" ] && mkdir -p "${message_queue}"
+
+procedures="${shared_location}/.${PROTOCOL}/procedures/"
+[ ! -d "${procedures}" ] && mkdir -p "${procedures}"
 
 # =============================== [ ACTION ] =============================== #
 
 is_procedure_available() {
-  [[ -f "${windows_proc_dir}/${PROCEDURE}.ps1" ]] && return 0
+  [[ -f "${procedures}/${PROCEDURE}.ps1" ]] && return 0
   return 1
 }
 
 is_procedure_called() {
-  [[ -f "${windows_comm_dir}/${PROCEDURE}" ]] && return 0
+  [[ -f "${message_queue}/${PROCEDURE}" ]] && return 0
   return 1
 }
 
 get_available_procedures() {
-  echo "$(ls ${windows_proc_dir} | cut -d '.' -f 1)"
+  echo "$(ls ${procedures} | cut -d '.' -f 1)"
 }
 
 show_help() {
@@ -82,7 +85,7 @@ show_help() {
 Cross-OS Procedure Manager
 
 Manages procedures that run automatically when booting into Windows.
-Uses shared directory: $windows_mountpoint
+Uses shared directory: $shared_location
 
 USAGE:
     $0 [COMMAND] [PROCEDURE]
@@ -154,7 +157,7 @@ case "$ACTION" in
   # case: reboot with PROCEDURE
   if is_procedure_available; then
     echo "Rebooting to Windows and running procedure: $PROCEDURE"
-    touch "${windows_comm_dir}/${PROCEDURE}"
+    touch "${message_queue}/${PROCEDURE}"
     # eg $windows_title = 'Windows Boot Manager (on /dev/nvme0n1p1)'
     windows_title=$(sudo grep -i windows /boot/grub/grub.cfg | cut -d "'" -f 2)
     sudo grub-reboot "$windows_title"
@@ -189,7 +192,7 @@ fi
 case "$ACTION" in
 "set")
   if is_procedure_available; then
-    touch "${windows_comm_dir}/${PROCEDURE}"
+    touch "${message_queue}/${PROCEDURE}"
     echo "Procedure '$PROCEDURE' scheduled for next Windows boot"
   else
     echo "Error: Procedure '$PROCEDURE' is not available"
@@ -201,7 +204,7 @@ case "$ACTION" in
 
 "unset")
   if is_procedure_called; then
-    rm "${windows_comm_dir}/${PROCEDURE}"
+    rm "${message_queue}/${PROCEDURE}"
     echo "Procedure '$PROCEDURE' removed from schedule"
   else
     echo "Error: Procedure '$PROCEDURE' is not scheduled"
