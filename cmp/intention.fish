@@ -9,11 +9,11 @@ complete -c intention -n '__fish_use_subcommand' -a run -d 'Execute your intenti
 complete -c intention -n '__fish_use_subcommand' -a set -d 'Set your intention for later use'
 complete -c intention -n '__fish_use_subcommand' -a unset -d 'Unset your intention for later use'
 complete -c intention -n '__fish_use_subcommand' -a status -d 'Show your current intention status'
-complete -c intention -n '__fish_use_subcommand' -a help -d 'Show this help'
+complete -c intention -n '__fish_use_subcommand' -a help -d 'Show help'
 complete -c intention -n '__fish_use_subcommand' -a init -d 'Initialize intention config'
 
 
-complete -c intention -n '__fish_seen_subcommand_from set' -a '(intention list)' -d 'intent'
-complete -c intention -n '__fish_seen_subcommand_from unset' -a '(intention list)' -d 'intent'
-complete -c intention -n '__fish_seen_subcommand_from status' -a '(intention list)' -d 'intent'
-complete -c intention -n '__fish_seen_subcommand_from run' -a '(intention list)' -d 'intent'
+complete -c intention -n '__fish_seen_subcommand_from set' -a '(intention list)'
+complete -c intention -n '__fish_seen_subcommand_from unset' -a '(intention list)'
+complete -c intention -n '__fish_seen_subcommand_from status' -a '(intention list)'
+complete -c intention -n '__fish_seen_subcommand_from run' -a '(intention list)'

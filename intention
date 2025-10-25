@@ -16,10 +16,6 @@ Example locations:
     /media/user/shared/    # Shared network drive
     /home/user/shared/     # Shared directory (if using tools like Shared Folders in VM)
 
-The directory will contain:
-    ${comms_dir}    # Communication queue (marker files)
-    ${proc_dir}     # Procedure scripts (.ps1 files)
-
 After initialization, place your PowerShell scripts in the procedures directory
 on the Windows side, and they will be detectable by this script.
 EOF
@@ -31,28 +27,29 @@ set_shared_location() {
   read -r -p 'Enter path to your shared path/mount point: ' partition
   # sanitize mount point name, ensure existence and write to cache
   [[ $partition != /* ]] && partition="/$partition"
-  if [ ! -d $partition ]; then
+  if [ ! -d "$partition" ]; then
     echo "Invalid mountpoint: $partition"
     exit 1
   fi
-  echo $partition >$cache_file
+  echo "$partition" > "$cache_file"
 }
 
 # ENSURE: save windows mountpoint in cache
-if [ ! -f $cache_file ]; then
+if [ ! -f "$cache_file" ]; then
   show_init_help
   set_shared_location
 fi
 
 get_shared_location() {
-  [ ! -f $cache_file ] && set_shared_location
-  local location=$(cat $cache_file)
-  echo $location
+  [ ! -f "$cache_file" ] && set_shared_location
+  local location
+  location=$(cat "$cache_file")
+  echo "$location"
 }
 
 # REQUIRED: Shared Mountpoint
 shared_location=$(get_shared_location)
-if [ ! -d $shared_location ]; then
+if [ ! -d "$shared_location" ]; then
   echo "Location does not exist: $shared_location"
   exit 1
 fi
@@ -82,7 +79,17 @@ is_procedure_called() {
 }
 
 get_available_procedures() {
-  echo "$(ls ${procedures} | cut -d '.' -f 1)"
+  local proc_files
+  proc_files=$(ls "${procedures}")
+  for file in $proc_files; do
+    if [[ $file == *.ps1 ]]; then
+      echo -e "${file%.ps1}\tWindows"
+    elif [[ $file == *.sh ]]; then
+      echo -e "${file%.sh}\tLinux"
+    else
+      echo -e "${file}\tUnknown"
+    fi
+  done
 }
 
 show_help() {
@@ -139,7 +146,6 @@ case "$ACTION" in
   echo ""
   set_shared_location
   echo "Shared location updated successfully."
-  echo "New location: $(cat $cache_file)"
   exit 0
   ;;
 
@@ -170,7 +176,7 @@ case "$ACTION" in
     exit 0
 
   elif is_procedure_available_linux; then
-    source "${procedures}/${PROCEDURE}.sh"
+    bash "${procedures}/${PROCEDURE}.sh"
     exit 0
 
   else
