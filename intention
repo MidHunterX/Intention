@@ -66,8 +66,13 @@ procedures="${shared_location}/.${PROTOCOL}/procedures/"
 
 # =============================== [ ACTION ] =============================== #
 
-is_procedure_available() {
+is_procedure_available_windows() {
   [[ -f "${procedures}/${PROCEDURE}.ps1" ]] && return 0
+  return 1
+}
+
+is_procedure_available_linux() {
+  [[ -f "${procedures}/${PROCEDURE}.sh" ]] && return 0
   return 1
 }
 
@@ -88,7 +93,7 @@ Manages procedures that run automatically when booting into Windows.
 Uses shared directory: $shared_location
 
 USAGE:
-    $0 [COMMAND] [PROCEDURE]
+    intention [COMMAND] [PROCEDURE]
 
 COMMANDS:
     list                    List all available procedures
@@ -102,16 +107,16 @@ COMMANDS:
 
 PROCEDURES:
     Procedures are PowerShell scripts located in:
-    ${windows_proc_dir}
+    ${procedures}
     List available procedures with 'list' command
 
 EXAMPLES:
-    $0 list                 # Show available procedures
-    $0 run gaming_mode      # Reboot and run gaming_mode setup
-    $0 set gaming_mode      # Mark gaming_mode setup for next boot
-    $0 status gaming_mode   # Check if gaming_mode setup is scheduled
-    $0 unset gaming_mode    # Cancel gaming_mode setup
-    $0 init                 # Change shared location
+    intention list                 # Show available procedures
+    intention run gaming_mode      # Reboot and run gaming_mode setup
+    intention set gaming_mode      # Mark gaming_mode setup for next boot
+    intention status gaming_mode   # Check if gaming_mode setup is scheduled
+    intention unset gaming_mode    # Cancel gaming_mode setup
+    intention init                 # Change shared location
 EOF
 }
 
@@ -144,7 +149,7 @@ case "$ACTION" in
   ;;
 
 "run")
-  # case: reboot without PROCEDURE
+  # case: run without PROCEDURE
   if [[ -z "$PROCEDURE" ]]; then
     echo "Rebooting to Windows without running any procedure..."
     # eg $windows_title = 'Windows Boot Manager (on /dev/nvme0n1p1)'
@@ -154,8 +159,8 @@ case "$ACTION" in
     exit 0
   fi
 
-  # case: reboot with PROCEDURE
-  if is_procedure_available; then
+  # case: run with PROCEDURE
+  if is_procedure_available_windows; then
     echo "Rebooting to Windows and running procedure: $PROCEDURE"
     touch "${message_queue}/${PROCEDURE}"
     # eg $windows_title = 'Windows Boot Manager (on /dev/nvme0n1p1)'
@@ -163,6 +168,11 @@ case "$ACTION" in
     sudo grub-reboot "$windows_title"
     reboot
     exit 0
+
+  elif is_procedure_available_linux; then
+    source "${procedures}/${PROCEDURE}.sh"
+    exit 0
+
   else
     echo "Error: Procedure '$PROCEDURE' is not available"
     echo "Available procedures:"
@@ -191,7 +201,7 @@ fi
 
 case "$ACTION" in
 "set")
-  if is_procedure_available; then
+  if is_procedure_available_windows; then
     touch "${message_queue}/${PROCEDURE}"
     echo "Procedure '$PROCEDURE' scheduled for next Windows boot"
   else
