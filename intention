@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 ACTION=$1
-PROCEDURE=$2
 
 PROTOCOL="xoscrp"
 cache_file="$HOME/.cache/${PROTOCOL}"
@@ -31,7 +30,7 @@ set_shared_location() {
     echo "Invalid mountpoint: $partition"
     exit 1
   fi
-  echo "$partition" > "$cache_file"
+  echo "$partition" >"$cache_file"
 }
 
 # ENSURE: save windows mountpoint in cache
@@ -73,11 +72,6 @@ is_procedure_available_linux() {
   return 1
 }
 
-is_procedure_called() {
-  [[ -f "${message_queue}/${PROCEDURE}" ]] && return 0
-  return 1
-}
-
 get_available_procedures() {
   local proc_files
   proc_files=$(ls "${procedures}")
@@ -100,17 +94,12 @@ Manages procedures that run automatically when booting into Windows.
 Uses shared directory: $shared_location
 
 USAGE:
-    intention [COMMAND] [PROCEDURE]
+    intention <OPTIONS> <PROCEDURE>
 
-COMMANDS:
-    list                    List all available procedures
-    run [PROCEDURE]         Reboot to Windows and run specified procedure
-    run                     Reboot to Windows without running any procedure
-    set <PROCEDURE>         Mark procedure to run on next Windows boot
-    unset <PROCEDURE>       Remove mark from procedure
-    status <PROCEDURE>      Check if procedure is marked to run
-    help                    Show this help message
-    init                    Reconfigure shared location
+OPTIONS:
+    -l  (--list)                  # List available procedures
+    -h  (--help)                  # Show this help message
+    -i  (--init)                  # Reconfigure shared location
 
 PROCEDURES:
     Procedures are PowerShell scripts located in:
@@ -118,16 +107,13 @@ PROCEDURES:
     List available procedures with 'list' command
 
 EXAMPLES:
-    intention list                 # Show available procedures
-    intention run gaming_mode      # Reboot and run gaming_mode setup
-    intention set gaming_mode      # Mark gaming_mode setup for next boot
-    intention status gaming_mode   # Check if gaming_mode setup is scheduled
-    intention unset gaming_mode    # Cancel gaming_mode setup
-    intention init                 # Change shared location
+    intention --init              # Change shared location
+    intention --list              # Show available procedures
+    intention gaming_mode         # Reboot and run gaming_mode setup
 EOF
 }
 
-# ============================= [ ACTION (2) ] ============================= #
+# =============================== [ ACTION ] =============================== #
 
 # REQUIRED: ACTION
 if [[ -z "$ACTION" ]]; then
@@ -136,12 +122,12 @@ if [[ -z "$ACTION" ]]; then
 fi
 
 case "$ACTION" in
-"help" | "-h" | "--help")
+"-h" | "--help")
   show_help
   exit 0
   ;;
 
-"init")
+"-i" | "--init")
   show_init_help
   echo ""
   set_shared_location
@@ -149,54 +135,15 @@ case "$ACTION" in
   exit 0
   ;;
 
-"list")
+"-l" | "--list")
   get_available_procedures
   exit 0
   ;;
-
-"run")
-  # case: run without PROCEDURE
-  if [[ -z "$PROCEDURE" ]]; then
-    echo "Rebooting to Windows without running any procedure..."
-    # eg $windows_title = 'Windows Boot Manager (on /dev/nvme0n1p1)'
-    windows_title=$(sudo grep -i windows /boot/grub/grub.cfg | cut -d "'" -f 2)
-    sudo grub-reboot "$windows_title"
-    reboot
-    exit 0
-  fi
-
-  # case: run with PROCEDURE
-  if is_procedure_available_windows; then
-    echo "Rebooting to Windows and running procedure: $PROCEDURE"
-    touch "${message_queue}/${PROCEDURE}"
-    # eg $windows_title = 'Windows Boot Manager (on /dev/nvme0n1p1)'
-    windows_title=$(sudo grep -i windows /boot/grub/grub.cfg | cut -d "'" -f 2)
-    sudo grub-reboot "$windows_title"
-    reboot
-    exit 0
-
-  elif is_procedure_available_linux; then
-    bash "${procedures}/${PROCEDURE}.sh"
-    exit 0
-
-  else
-    echo "Error: Procedure '$PROCEDURE' is not available"
-    echo "Available procedures:"
-    get_available_procedures | sed 's/^/  - /'
-    exit 1
-  fi
-  ;;
 esac
 
-# ============================= [ ACTION (3) ] ============================= #
+# ============================== [ PROCEDURE ] ============================== #
 
-# REQUIRED: PROCEDURE
-if [[ -z "$PROCEDURE" ]]; then
-  echo "Error: Procedure name is required for action '$ACTION'"
-  echo ""
-  show_help
-  exit 1
-fi
+PROCEDURE=$ACTION
 
 # SANITIZE: remote procedure name
 if [[ ! "$PROCEDURE" =~ ^[A-Za-z0-9_-]+$ ]]; then
@@ -205,42 +152,23 @@ if [[ ! "$PROCEDURE" =~ ^[A-Za-z0-9_-]+$ ]]; then
   exit 1
 fi
 
-case "$ACTION" in
-"set")
-  if is_procedure_available_windows; then
-    touch "${message_queue}/${PROCEDURE}"
-    echo "Procedure '$PROCEDURE' scheduled for next Windows boot"
-  else
-    echo "Error: Procedure '$PROCEDURE' is not available"
-    echo "Available procedures:"
-    get_available_procedures | sed 's/^/  - /'
-    exit 1
-  fi
-  ;;
+# ACTION: run procedure
+if is_procedure_available_windows; then
+  echo "Rebooting to Windows and running procedure: $PROCEDURE"
+  touch "${message_queue}/${PROCEDURE}"
+  # eg $windows_title = 'Windows Boot Manager (on /dev/nvme0n1p1)'
+  windows_title=$(sudo grep -i windows /boot/grub/grub.cfg | cut -d "'" -f 2)
+  sudo grub-reboot "$windows_title"
+  reboot
+  exit 0
 
-"unset")
-  if is_procedure_called; then
-    rm "${message_queue}/${PROCEDURE}"
-    echo "Procedure '$PROCEDURE' removed from schedule"
-  else
-    echo "Error: Procedure '$PROCEDURE' is not scheduled"
-    exit 1
-  fi
-  ;;
+elif is_procedure_available_linux; then
+  bash "${procedures}/${PROCEDURE}.sh"
+  exit 0
 
-"status")
-  if is_procedure_called; then
-    echo "Procedure '$PROCEDURE' is scheduled to run on next Windows boot"
-  else
-    echo "Procedure '$PROCEDURE' is NOT scheduled to run"
-    exit 1
-  fi
-  ;;
-
-*)
-  echo "Error: Invalid command: $ACTION"
-  echo ""
-  show_help
+else
+  echo "Error: Procedure '$PROCEDURE' is not available"
+  echo "Available procedures:"
+  get_available_procedures | sed 's/^/  - /'
   exit 1
-  ;;
-esac
+fi

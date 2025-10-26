@@ -28,14 +28,10 @@ With this new setup, you just state your intent, sit back and relax thinking abo
 
 ```bash
 # Lists all available procedures exposed by other Operating Systems
-intention list
+intention --list
 
 # Immediately move to the appropriate OS and set up workspace
-intention run "function_name"
-
-# Set or unset your intention for later use
-intention set "function_name"
-intention unset "function_name"
+intention "function_name"
 ```
 
 ### Windows (Procedure Server)
