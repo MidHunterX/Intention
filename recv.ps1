@@ -87,7 +87,7 @@ ForEach-Object {
 }
 
 if (-not $executed) {
-    $defaultScript = Join-Path $ProcDir "default.ps1"
+    $defaultScript = Join-Path $ProcDir "windows.ps1"
     if (Test-Path $defaultScript) {
         & $defaultScript
     }

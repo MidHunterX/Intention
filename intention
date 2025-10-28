@@ -80,8 +80,6 @@ get_available_procedures() {
       echo -e "${file%.ps1}\tWindows"
     elif [[ $file == *.sh ]]; then
       echo -e "${file%.sh}\tLinux"
-    else
-      echo -e "${file}\tUnknown"
     fi
   done
 }
