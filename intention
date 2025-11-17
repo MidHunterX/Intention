@@ -6,7 +6,7 @@ PROTOCOL="xoscrp"
 cache_file="$HOME/.cache/${PROTOCOL}"
 
 show_init_help() {
-  cat <<EOF
+    cat <<EOF
 The script needs access to a shared directory that both Linux and Windows can access.
 This is typically a mounted Windows partition or network share.
 
@@ -23,34 +23,34 @@ EOF
 # ================================ [ INIT ] ================================ #
 
 set_shared_location() {
-  read -r -p 'Enter path to your shared path/mount point: ' partition
-  # sanitize mount point name, ensure existence and write to cache
-  [[ $partition != /* ]] && partition="/$partition"
-  if [ ! -d "$partition" ]; then
-    echo "Invalid mountpoint: $partition"
-    exit 1
-  fi
-  echo "$partition" >"$cache_file"
+    read -r -p 'Enter path to your shared path/mount point: ' partition
+    # sanitize mount point name, ensure existence and write to cache
+    [[ $partition != /* ]] && partition="/$partition"
+    if [ ! -d "$partition" ]; then
+        echo "Invalid mountpoint: $partition"
+        exit 1
+    fi
+    echo "$partition" >"$cache_file"
 }
 
 # ENSURE: save windows mountpoint in cache
 if [ ! -f "$cache_file" ]; then
-  show_init_help
-  set_shared_location
+    show_init_help
+    set_shared_location
 fi
 
 get_shared_location() {
-  [ ! -f "$cache_file" ] && set_shared_location
-  local location
-  location=$(cat "$cache_file")
-  echo "$location"
+    [ ! -f "$cache_file" ] && set_shared_location
+    local location
+    location=$(cat "$cache_file")
+    echo "$location"
 }
 
 # REQUIRED: Shared Mountpoint
 shared_location=$(get_shared_location)
 if [ ! -d "$shared_location" ]; then
-  echo "Location does not exist: $shared_location"
-  exit 1
+    echo "Location does not exist: $shared_location"
+    exit 1
 fi
 
 # ENSURE: shared communication and procedure directories
@@ -63,29 +63,29 @@ procedures="${shared_location}/.${PROTOCOL}/procedures/"
 # =============================== [ ACTION ] =============================== #
 
 is_procedure_available_windows() {
-  [[ -f "${procedures}/${PROCEDURE}.ps1" ]] && return 0
-  return 1
+    [[ -f "${procedures}/${PROCEDURE}.ps1" ]] && return 0
+    return 1
 }
 
 is_procedure_available_linux() {
-  [[ -f "${procedures}/${PROCEDURE}.sh" ]] && return 0
-  return 1
+    [[ -f "${procedures}/${PROCEDURE}.sh" ]] && return 0
+    return 1
 }
 
 get_available_procedures() {
-  local proc_files
-  proc_files=$(ls "${procedures}")
-  for file in $proc_files; do
-    if [[ $file == *.ps1 ]]; then
-      echo -e "${file%.ps1}\tWindows"
-    elif [[ $file == *.sh ]]; then
-      echo -e "${file%.sh}\tLinux"
-    fi
-  done
+    local proc_files
+    proc_files=$(ls "${procedures}")
+    for file in $proc_files; do
+        if [[ $file == *.ps1 ]]; then
+            echo -e "${file%.ps1}\tWindows"
+        elif [[ $file == *.sh ]]; then
+            echo -e "${file%.sh}\tLinux"
+        fi
+    done
 }
 
 show_help() {
-  cat <<EOF
+    cat <<EOF
 Cross-OS Procedure Manager
 
 Manages procedures that run automatically when booting into Windows.
@@ -115,28 +115,28 @@ EOF
 
 # REQUIRED: ACTION
 if [[ -z "$ACTION" ]]; then
-  show_help
-  exit 0
+    show_help
+    exit 0
 fi
 
 case "$ACTION" in
 "-h" | "--help")
-  show_help
-  exit 0
-  ;;
+    show_help
+    exit 0
+    ;;
 
 "-i" | "--init")
-  show_init_help
-  echo ""
-  set_shared_location
-  echo "Shared location updated successfully."
-  exit 0
-  ;;
+    show_init_help
+    echo ""
+    set_shared_location
+    echo "Shared location updated successfully."
+    exit 0
+    ;;
 
 "-l" | "--list")
-  get_available_procedures
-  exit 0
-  ;;
+    get_available_procedures
+    exit 0
+    ;;
 esac
 
 # ============================== [ PROCEDURE ] ============================== #
@@ -145,28 +145,28 @@ PROCEDURE=$ACTION
 
 # SANITIZE: remote procedure name
 if [[ ! "$PROCEDURE" =~ ^[A-Za-z0-9_-]+$ ]]; then
-  echo "Error: Invalid procedure name: $PROCEDURE"
-  echo "Valid characters: A-Z, a-z, 0-9, _, -"
-  exit 1
+    echo "Error: Invalid procedure name: $PROCEDURE"
+    echo "Valid characters: A-Z, a-z, 0-9, _, -"
+    exit 1
 fi
 
 # ACTION: run procedure
 if is_procedure_available_windows; then
-  echo "Rebooting to Windows and running procedure: $PROCEDURE"
-  touch "${message_queue}/${PROCEDURE}"
-  # eg $windows_title = 'Windows Boot Manager (on /dev/nvme0n1p1)'
-  windows_title=$(sudo grep -i windows /boot/grub/grub.cfg | cut -d "'" -f 2)
-  sudo grub-reboot "$windows_title"
-  reboot
-  exit 0
+    echo "Rebooting to Windows and running procedure: $PROCEDURE"
+    touch "${message_queue}/${PROCEDURE}"
+    # eg $windows_title = 'Windows Boot Manager (on /dev/nvme0n1p1)'
+    windows_title=$(sudo grep -i windows /boot/grub/grub.cfg | cut -d "'" -f 2)
+    sudo grub-reboot "$windows_title"
+    reboot
+    exit 0
 
 elif is_procedure_available_linux; then
-  bash "${procedures}/${PROCEDURE}.sh"
-  exit 0
+    bash "${procedures}/${PROCEDURE}.sh"
+    exit 0
 
 else
-  echo "Error: Procedure '$PROCEDURE' is not available"
-  echo "Available procedures:"
-  get_available_procedures | sed 's/^/  - /'
-  exit 1
+    echo "Error: Procedure '$PROCEDURE' is not available"
+    echo "Available procedures:"
+    get_available_procedures | sed 's/^/  - /'
+    exit 1
 fi
