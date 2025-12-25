@@ -72,6 +72,14 @@ is_procedure_available_linux() {
     return 1
 }
 
+get_procedure_os() {
+    if is_procedure_available_windows; then
+        echo "windows"
+    elif is_procedure_available_linux; then
+        echo "linux"
+    fi
+}
+
 get_available_procedures() {
     local proc_files
     proc_files=$(ls "${procedures}")
@@ -151,7 +159,9 @@ if [[ ! "$PROCEDURE" =~ ^[A-Za-z0-9_-]+$ ]]; then
 fi
 
 # ACTION: run procedure
-if is_procedure_available_windows; then
+OS=$(get_procedure_os)
+case "$OS" in
+"windows")
     echo "Rebooting to Windows and running procedure: $PROCEDURE"
     touch "${message_queue}/${PROCEDURE}"
     # eg $windows_title = 'Windows Boot Manager (on /dev/nvme0n1p1)'
@@ -160,13 +170,15 @@ if is_procedure_available_windows; then
     reboot
     exit 0
 
-elif is_procedure_available_linux; then
+    ;;
+"linux")
     bash "${procedures}/${PROCEDURE}.sh"
     exit 0
-
-else
+    ;;
+*)
     echo "Error: Procedure '$PROCEDURE' is not available"
     echo "Available procedures:"
     get_available_procedures | sed 's/^/  - /'
     exit 1
-fi
+    ;;
+esac
