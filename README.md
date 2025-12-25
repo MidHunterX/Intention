@@ -44,6 +44,8 @@ Run the `recv.ps1` once to install the server as a Windows task entry.
 ├── procedures
 │   ├── default.ps1
 │   ├── gaming_mode.ps1
+│   ├── movie_mode.sh
+│   ├── project_expression.sh
 │   ├── ...
 │   └── {function_files}
 └──  recv.ps1
