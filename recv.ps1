@@ -40,7 +40,14 @@ if ($LASTEXITCODE -ne 0) {
     $fullName   = "\$taskName"
 
     # Create task
-    schtasks /Create /TN $fullName /TR "powershell.exe -NoProfile -WindowStyle Minimized -ExecutionPolicy Bypass -File `"$scriptPath`"" /SC ONLOGON /F
+    # schtasks /Create /TN $fullName /TR "powershell.exe -NoProfile -WindowStyle Minimized -ExecutionPolicy Bypass -File `"$scriptPath`"" /SC ONLOGON /F
+    Write-Host "Registering Task Scheduler job: $taskName"
+    $scriptPath = $MyInvocation.MyCommand.Path
+    $taskAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Minimized -ExecutionPolicy Bypass -File `"$scriptPath`""
+    $trigger = New-ScheduledTaskTrigger -AtLogOn
+    $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 0
+    Register-ScheduledTask -TaskName $taskName -Action $taskAction -Trigger $trigger -Settings $settings -Force | Out-Null
+    Write-Host "Task registered successfully with battery support."
 }
 
 # ============================ [ CORE-LOGIC ] ============================ #

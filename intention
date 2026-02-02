@@ -169,7 +169,6 @@ case "$OS" in
     sudo grub-reboot "$windows_title"
     reboot
     exit 0
-
     ;;
 "linux")
     bash "${procedures}/${PROCEDURE}.sh"
