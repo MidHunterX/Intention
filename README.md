@@ -8,6 +8,11 @@ Imagine doing Development works in Linux and you want to switch to Windows for e
 
 With this new setup, you just state your intent, sit back and relax thinking about the next task you want to do. Meanwhile this automation will do all the workspace setup for you.
 
+> [!NOTE]
+> The best solution to this problem is to have KVM + QEMU + GPU Pass-Through
+> setup. This solution is meant to be used in a multi-boot setup as a
+> workaround for devices without a dedicated GPU and MUX.
+
 ### What it does
 
 - Gets available procedures exposed by other Operating System.
@@ -63,11 +68,11 @@ It uses a bespoke Cross Operating System Context Relay Protocol (XOSCRP); a defe
 
 > [!WARNING]
 >
-> ### High Risk of Data Corruption
+> ### Possibility of Data Corruption
 >
 > When Windows uses **hibernation** or **Fast Startup**, the NTFS partition is left in an **unsafe state**.
-> If Linux writes to the partition in this condition, it can cause **serious data corruption**.
-> It's due to the way poorly implemented New Technology File System (NTFS) in Windows works.
+> If Linux writes to the partition in this condition, it might cause **serious data corruption**.
+> It's due to the way New Technology File System (NTFS) in Windows is designed.
 >
 > Mitigation:
 >
