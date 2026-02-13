@@ -17,8 +17,23 @@ With this new setup, you just state your intent, sit back and relax thinking abo
 
 - Gets available procedures exposed by other Operating System.
 - Communicates your intent to the other Operating System.
-- Reboot and automatically select the OS entry on the GRUB Boot Manager.
-- Automatically sets up wallpaper, opens apps, change settings, etc. for you.
+- Reboot and automatically select the OS entry on the GRUB Boot Manager if the intent requires an OS switch.
+- Automatically set up wallpaper, opens apps, change settings, etc. based on your intent.
+
+```mermaid
+sequenceDiagram
+
+intent ->> windows: GET: intents
+windows ->> intent: SEND: supported intents
+intent ->> linux: Show supported intents
+linux ->> intent: Read user intent
+
+intent ->> windows: SEND: user's intent
+intent ->> boot: SEND: Next OS entry
+
+boot ->> windows: EXEC: Next OS entry
+windows ->> intent: ACK: Intent processed!
+```
 
 ### Prerequisites
 
