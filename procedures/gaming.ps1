@@ -1,4 +1,4 @@
-# Gaming mode procedure
+# Gaming mode procedure - Step 2
 # Sets a gaming wallpaper and launches Playnite
 
 . "$PSScriptRoot\common\utils.ps1"
